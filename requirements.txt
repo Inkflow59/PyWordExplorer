@@ -1,0 +1,11 @@
+# PyWordExplorer - Requirements
+# Aucune dépendance externe requise!
+# Le jeu utilise uniquement la bibliothèque standard Python
+
+# Python 3.7+
+# tkinter (inclus avec Python sur Windows, peut nécessiter installation sur Linux)
+
+# Installation de tkinter sur Linux (si nécessaire):
+# Ubuntu/Debian: sudo apt-get install python3-tk
+# Fedora: sudo dnf install python3-tkinter
+# Arch: sudo pacman -S tk
