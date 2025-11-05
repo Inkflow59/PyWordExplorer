@@ -25,6 +25,25 @@ class WordSearchGUI:
     COLOR_WORD_LIST = "#34495E"
     COLOR_WORD_FOUND = "#27AE60"
     
+    # Couleurs pour les mots trouvés (variées, pas blanc ni trop clair)
+    WORD_COLORS = [
+        "#E74C3C",  # Rouge
+        "#3498DB",  # Bleu
+        "#2ECC71",  # Vert
+        "#F39C12",  # Orange
+        "#9B59B6",  # Violet
+        "#1ABC9C",  # Turquoise
+        "#E67E22",  # Carotte
+        "#34495E",  # Gris foncé
+        "#16A085",  # Vert turquoise
+        "#C0392B",  # Rouge foncé
+        "#2980B9",  # Bleu foncé
+        "#27AE60",  # Vert foncé
+        "#D35400",  # Citrouille
+        "#8E44AD",  # Violet foncé
+        "#2C3E50",  # Bleu nuit
+    ]
+    
     def __init__(self, root: tk.Tk):
         self.root = root
         self.root.geometry("1200x800")
@@ -48,6 +67,8 @@ class WordSearchGUI:
         self.selection_end: Optional[Tuple[int, int]] = None
         self.current_selection: List[Tuple[int, int]] = []
         self.found_cells: List[Tuple[int, int]] = []
+        self.cell_colors: Dict[Tuple[int, int], str] = {}  # Couleur pour chaque cellule trouvée
+        self.color_index: int = 0  # Index pour la prochaine couleur
         
         # UI elements
         self.canvas = None
@@ -226,6 +247,8 @@ class WordSearchGUI:
             self.game = GameLogic(self.word_gen.get_words())
             info = self.game.start_level(level, seed)
             self.found_cells = []
+            self.cell_colors = {}
+            self.color_index = 0
             self.show_game_screen()
         except Exception as e:
             messagebox.showerror(self.lang.get('error'), f"{e}")
@@ -236,6 +259,8 @@ class WordSearchGUI:
         if state:
             self.game.load_game_state(state)
             self.found_cells = []
+            self.cell_colors = {}
+            self.color_index = 0
             self.show_game_screen()
         else:
             messagebox.showinfo(self.lang.get('info'), self.lang.get('no_autosave'))
@@ -275,6 +300,8 @@ class WordSearchGUI:
                 if state:
                     self.game.load_game_state(state)
                     self.found_cells = []
+                    self.cell_colors = {}
+                    self.color_index = 0
                     dialog.destroy()
                     self.show_game_screen()
         
@@ -443,7 +470,8 @@ class WordSearchGUI:
                 
                 # Déterminer la couleur
                 if (i, j) in self.found_cells:
-                    color = self.COLOR_FOUND
+                    # Utiliser la couleur spécifique assignée à cette cellule
+                    color = self.cell_colors.get((i, j), self.COLOR_FOUND)
                 elif (i, j) in self.current_selection:
                     color = self.COLOR_SELECTED
                 else:
@@ -559,13 +587,19 @@ class WordSearchGUI:
     
     def on_word_found(self, word: str, cells: List[Tuple[int, int]]):
         """Appelé quand un mot est trouvé."""
-        # Ajouter les cellules aux cellules trouvées
-        self.found_cells.extend(cells)
+        # Choisir une couleur pour ce mot
+        word_color = self.WORD_COLORS[self.color_index % len(self.WORD_COLORS)]
+        self.color_index += 1
         
-        # Mettre à jour le label du mot
+        # Ajouter les cellules aux cellules trouvées avec leur couleur
+        self.found_cells.extend(cells)
+        for cell in cells:
+            self.cell_colors[cell] = word_color
+        
+        # Mettre à jour le label du mot avec la même couleur
         if word in self.word_labels:
             self.word_labels[word].config(
-                fg=self.COLOR_WORD_FOUND,
+                fg=word_color,
                 font=("Arial", 14, "bold", "overstrike")
             )
         

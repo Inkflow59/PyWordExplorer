@@ -50,27 +50,50 @@ class GridGenerator:
         Returns:
             Tuple contenant la grille et les informations des mots placés
         """
-        # Initialiser la grille avec des espaces vides
-        grid = [[' ' for _ in range(config.size)] for _ in range(config.size)]
-        placed_words = []
+        # Filtrer les mots qui sont trop longs pour tenir dans la grille
+        max_word_length = config.size
+        suitable_words = [w for w in word_list if len(w) <= max_word_length and len(w) >= 3]
         
-        # Sélectionner les mots à utiliser
-        words_to_place = self.rng.sample(word_list, min(config.num_words, len(word_list)))
-        words_to_place.sort(key=len, reverse=True)  # Placer les plus longs d'abord
+        if len(suitable_words) < config.num_words:
+            # Ajuster le nombre de mots si pas assez de mots appropriés
+            config.num_words = max(3, len(suitable_words))  # Au minimum 3 mots
         
-        # Placer chaque mot
-        for word in words_to_place:
-            word = word.upper()
-            placement = self._try_place_word(grid, word, config)
-            if placement:
-                placed_words.append(placement)
+        # Essayer de générer une grille valide (avec au moins 50% des mots demandés)
+        max_grid_attempts = 5
+        min_required_words = max(3, config.num_words // 2)
         
-        # Remplir les cases vides avec des lettres aléatoires
-        self._fill_empty_cells(grid)
+        for attempt in range(max_grid_attempts):
+            # Initialiser la grille avec des espaces vides
+            grid = [[' ' for _ in range(config.size)] for _ in range(config.size)]
+            placed_words = []
+            
+            # Sélectionner les mots à utiliser
+            words_to_place = self.rng.sample(suitable_words, min(config.num_words, len(suitable_words)))
+            words_to_place.sort(key=len, reverse=True)  # Placer les plus longs d'abord
+            
+            # Placer chaque mot
+            for word in words_to_place:
+                word = word.upper()
+                placement = self._try_place_word(grid, word, config)
+                if placement:
+                    placed_words.append(placement)
+            
+            # Vérifier si assez de mots ont été placés
+            if len(placed_words) >= min_required_words:
+                # Remplir les cases vides avec des lettres aléatoires
+                self._fill_empty_cells(grid)
+                return grid, placed_words
         
-        return grid, placed_words
+        # Si après plusieurs tentatives, pas assez de mots, retourner ce qu'on a
+        # (ce cas devrait être rare avec les filtres en place)
+        if placed_words:
+            self._fill_empty_cells(grid)
+            return grid, placed_words
+        
+        # Cas extrême : générer une grille minimale avec des mots courts garantis
+        return self._generate_fallback_grid(config, suitable_words)
     
-    def _try_place_word(self, grid: List[List[str]], word: str, config: GridConfig, max_attempts: int = 100) -> Dict:
+    def _try_place_word(self, grid: List[List[str]], word: str, config: GridConfig, max_attempts: int = None) -> Dict:
         """
         Tente de placer un mot dans la grille.
         
@@ -83,14 +106,22 @@ class GridGenerator:
         Returns:
             Dictionnaire avec les infos du mot placé, ou None si échec
         """
-        # Déterminer les directions autorisées
+        # Adapter le nombre de tentatives à la taille de la grille
+        if max_attempts is None:
+            max_attempts = max(200, config.size * 20)
+        
+        # Déterminer les directions autorisées (en donnant plus de poids aux diagonales si activées)
         available_directions = ['horizontal', 'vertical']
         if config.allow_diagonal:
-            available_directions.extend(['diagonal_down', 'diagonal_up'])
-        if config.allow_reverse:
-            available_directions.extend(['horizontal_reverse', 'vertical_reverse'])
-            if config.allow_diagonal:
-                available_directions.extend(['diagonal_down_reverse', 'diagonal_up_reverse'])
+            # Ajouter les diagonales plusieurs fois pour augmenter leur fréquence
+            available_directions.extend(['diagonal_down', 'diagonal_up', 'diagonal_down', 'diagonal_up'])
+        
+        # Décider si on inverse le mot (50% de chance si allow_reverse est activé)
+        word_to_place = word
+        is_reversed = False
+        if config.allow_reverse and self.rng.random() < 0.5:
+            word_to_place = word[::-1]  # Inverser les lettres
+            is_reversed = True
         
         for _ in range(max_attempts):
             # Choisir une position et direction aléatoires
@@ -100,14 +131,15 @@ class GridGenerator:
             direction = self.DIRECTIONS[direction_name]
             
             # Vérifier si le mot peut être placé
-            if self._can_place_word(grid, word, row, col, direction, config.size):
+            if self._can_place_word(grid, word_to_place, row, col, direction, config.size):
                 # Placer le mot
-                self._place_word(grid, word, row, col, direction)
+                self._place_word(grid, word_to_place, row, col, direction)
                 return {
-                    'word': word,
+                    'word': word,  # On retourne toujours le mot original
                     'start': (row, col),
                     'direction': direction_name,
-                    'length': len(word)
+                    'length': len(word),
+                    'reversed': is_reversed
                 }
         
         return None
@@ -150,6 +182,42 @@ class GridGenerator:
             for j in range(len(grid[i])):
                 if grid[i][j] == ' ':
                     grid[i][j] = self.rng.choice(letters)
+    
+    def _generate_fallback_grid(self, config: GridConfig, word_list: List[str]) -> Tuple[List[List[str]], List[Dict]]:
+        """
+        Génère une grille de secours avec placement garanti de mots simples.
+        Cette méthode est utilisée en dernier recours.
+        """
+        grid = [[' ' for _ in range(config.size)] for _ in range(config.size)]
+        placed_words = []
+        
+        # Prendre les mots les plus courts pour garantir le placement
+        short_words = sorted([w for w in word_list if len(w) <= config.size // 2], key=len)
+        words_to_place = short_words[:min(config.num_words, len(short_words))]
+        
+        # Placer les mots horizontalement en lignes espacées
+        row_spacing = max(2, config.size // (len(words_to_place) + 1))
+        
+        for idx, word in enumerate(words_to_place):
+            word = word.upper()
+            row = min(idx * row_spacing + 1, config.size - 1)
+            col = 0
+            
+            if len(word) <= config.size:
+                # Placer le mot horizontalement
+                for i, letter in enumerate(word):
+                    if col + i < config.size:
+                        grid[row][col + i] = letter
+                
+                placed_words.append({
+                    'word': word,
+                    'start': (row, col),
+                    'direction': 'horizontal',
+                    'length': len(word)
+                })
+        
+        self._fill_empty_cells(grid)
+        return grid, placed_words
     
     def get_seed(self) -> int:
         """Retourne le seed utilisé pour la génération."""
