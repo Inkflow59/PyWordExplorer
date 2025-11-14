@@ -6,6 +6,7 @@ import asyncio
 import websockets
 import json
 import random
+import socket
 from datetime import datetime
 from typing import Dict, Set, Optional, Any
 from src.word_generator import get_word_generator
@@ -175,6 +176,18 @@ class MultiplayerServer:
         self.port = port
         self.rooms: Dict[str, GameRoom] = {}
         self.clients: Set[Any] = set()
+    
+    def get_local_ip(self) -> str:
+        """Récupère l'adresse IP locale du serveur."""
+        try:
+            # Crée une connexion UDP (ne connecte pas réellement)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+            return local_ip
+        except Exception:
+            return "Unable to detect"
     
     async def handle_client(self, websocket: Any):
         """Gère la connexion d'un client."""
@@ -350,12 +363,28 @@ class MultiplayerServer:
     
     async def start(self):
         """Starts the server."""
+        local_ip = self.get_local_ip()
+        
         async with websockets.serve(self.handle_client, self.host, self.port):
             print("=" * 70)
             print("🎮 PyWordExplorer - Multiplayer Server")
             print("=" * 70)
             print(f"📡 Server running on {self.host}:{self.port}")
-            print(f"🌐 Server URL: ws://{self.host}:{self.port}")
+            print()
+            print("🌐 Connection URLs:")
+            print(f"   • Local (this computer): ws://localhost:{self.port}")
+            print(f"   • LAN (local network): ws://{local_ip}:{self.port}")
+            print()
+            print("🌍 To play via Internet:")
+            print("   1. Configure port forwarding on your router:")
+            print(f"      - Forward external port {self.port} to internal {local_ip}:{self.port}")
+            print("      - Protocol: TCP")
+            print("   2. Share your public IP with players:")
+            print("      - Find it at: https://whatismyipaddress.com")
+            print(f"      - Players connect to: ws://YOUR_PUBLIC_IP:{self.port}")
+            print("   3. Security warning:")
+            print("      - Only share with trusted players")
+            print("      - Consider using a VPN for better security")
             print()
             print("📋 Game Modes:")
             print("   • Duel Mode: Compete to find the most words - highest score wins!")
