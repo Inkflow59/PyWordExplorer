@@ -1,9 +1,11 @@
 # PyWordExplorer - Requirements
-# Aucune dépendance externe requise!
-# Le jeu utilise uniquement la bibliothèque standard Python
 
+# Mode solo - bibliothèque standard Python uniquement
 # Python 3.7+
 # tkinter (inclus avec Python sur Windows, peut nécessiter installation sur Linux)
+
+# Mode multijoueur - dépendances additionnelles
+websockets>=12.0
 
 # Installation de tkinter sur Linux (si nécessaire):
 # Ubuntu/Debian: sudo apt-get install python3-tk

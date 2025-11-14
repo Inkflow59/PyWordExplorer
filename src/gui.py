@@ -173,6 +173,12 @@ class WordSearchGUI:
         
         tk.Button(frame, text=self.lang.get('load_game'), command=self.load_game_dialog, **button_style).pack(pady=10)
         tk.Button(frame, text=self.lang.get('replay_seed'), command=self.replay_seed_dialog, **button_style).pack(pady=10)
+        
+        # Bouton Multijoueur
+        multiplayer_style = button_style.copy()
+        multiplayer_style["bg"] = "#9B59B6"
+        tk.Button(frame, text="🌐 Multijoueur en ligne", command=self.show_multiplayer, **multiplayer_style).pack(pady=10)
+        
         tk.Button(frame, text=self.lang.get('settings'), command=self.show_settings, **button_style).pack(pady=10)
         tk.Button(frame, text=self.lang.get('quit'), command=self.root.quit, bg="#E74C3C", fg="white", 
                  font=("Arial", 14), width=25, height=2, relief="flat").pack(pady=20)
@@ -466,6 +472,14 @@ class WordSearchGUI:
         
         words_canvas.create_window((0, 0), window=words_list, anchor="nw")
         words_canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Permettre le défilement avec la molette de la souris
+        def on_mousewheel(event):
+            words_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        
+        # Lier la molette de la souris au canvas et à tous les widgets enfants
+        words_canvas.bind_all("<MouseWheel>", on_mousewheel)
+        words_list.bind("<MouseWheel>", on_mousewheel)
         
         words_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -883,6 +897,11 @@ class WordSearchGUI:
             self.lang.get('about'),
             self.lang.get('about_text')
         )
+    
+    def show_multiplayer(self):
+        """Affiche l'interface multijoueur."""
+        from src.multiplayer_gui import MultiplayerGUI
+        MultiplayerGUI(self.root)
 
 
 def main():

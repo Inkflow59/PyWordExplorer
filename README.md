@@ -17,11 +17,13 @@ An interactive word search game in Python with level system, seed-based random g
 - **🖱️ Intuitive Selection**: Find words by clicking and dragging on the grid
 - **✅ Visual Validation**: Found words are highlighted in green
 - **⚙️ Customizable Settings**: Change language at any time
+- **🌐 Online Multiplayer**: Play with friends in Duel or Coop mode (requires websockets)
 
 ## 📋 Requirements
 
 - Python 3.7 or higher
-- No external dependencies (uses only standard library)
+- No external dependencies for single-player (uses only standard library)
+- For multiplayer mode: `websockets` library (install with `pip install websockets`)
 
 ## 🚀 Installation
 
@@ -103,6 +105,44 @@ Words can be placed:
 - **Backwards** - From level 4
 
 💡 **Tip**: Words can be selected in both directions!
+
+## 🌐 Multiplayer Mode
+
+PyWordExplorer now supports **online multiplayer**! Play with friends in two exciting modes:
+
+### Game Modes
+
+- **🆚 Duel Mode**: Compete against other players - first to find a word wins the points!
+- **🤝 Coop Mode**: Work together to find all words - share the victory!
+
+### Quick Start
+
+1. **Install the websockets library**:
+   ```bash
+   pip install websockets
+   ```
+
+2. **Launch the server** (one player hosts):
+   ```bash
+   python server.py
+   ```
+
+3. **Launch the game** (all players):
+   ```bash
+   python main.py
+   ```
+
+4. **Connect**: Click "🌐 Online Multiplayer" in the main menu
+
+5. **Play**: Create or join a game, select a difficulty level, and start playing!
+
+### Network Setup
+
+- **Local play**: Use `localhost:8765`
+- **LAN play**: Use server's local IP (e.g., `192.168.1.100:8765`)
+- **Internet play**: Use server's public IP with port forwarding
+
+For detailed multiplayer instructions, see [MULTIPLAYER.md](MULTIPLAYER.md).
 
 ## 📊 Levels
 
@@ -254,9 +294,9 @@ Modern interface with clear buttons to start a new game, continue, load, or repl
 - [x] Graphical interface (Tkinter) ✅
 - [x] Multilingual support (FR/EN/ES) ✅
 - [x] Dynamic word generator ✅
+- [x] Online multiplayer mode ✅
 - [ ] Animations when discovering words
 - [ ] Sound effects
-- [ ] Online multiplayer mode
 - [ ] Detailed statistics (progress charts)
 - [ ] Selectable word themes in the interface
 - [ ] Visual hint system (with penalty)
