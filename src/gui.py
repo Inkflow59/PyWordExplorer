@@ -294,9 +294,7 @@ class WordSearchGUI:
         state = self.save_manager.load_game("autosave")
         if state:
             self.game.load_game_state(state)
-            self.found_cells = []
-            self.cell_colors = {}
-            self.color_index = 0
+            self.rebuild_found_cells()
             self.show_game_screen()
         else:
             messagebox.showinfo(self.lang.get('info'), self.lang.get('no_autosave'))
@@ -335,9 +333,7 @@ class WordSearchGUI:
                 state = self.save_manager.load_game(save_name)
                 if state:
                     self.game.load_game_state(state)
-                    self.found_cells = []
-                    self.cell_colors = {}
-                    self.color_index = 0
+                    self.rebuild_found_cells()
                     dialog.destroy()
                     self.show_game_screen()
         
@@ -488,6 +484,9 @@ class WordSearchGUI:
             label.pack(fill=tk.X, pady=5, padx=10)
             self.word_labels[word] = label
         
+        # Marquer les mots déjà trouvés (pour le chargement de sauvegarde)
+        self.update_found_words_display()
+        
         self.draw_grid()
         self.start_timer()
     
@@ -553,6 +552,58 @@ class WordSearchGUI:
         if 0 <= row < grid_size and 0 <= col < grid_size:
             return (row, col)
         return None
+    
+    def rebuild_found_cells(self):
+        """Reconstruit found_cells et cell_colors à partir des mots trouvés dans la sauvegarde."""
+        self.found_cells = []
+        self.cell_colors = {}
+        self.color_index = 0
+        
+        # Pour chaque mot trouvé, retrouver ses cellules
+        for found_word in self.game.found_words:
+            # Chercher le mot dans words_to_find pour obtenir sa position
+            for word_info in self.game.words_to_find:
+                if word_info['word'] == found_word:
+                    # Reconstruire la liste des cellules pour ce mot
+                    cells = self.get_cells_from_word_info(word_info)
+                    
+                    # Assigner une couleur à ce mot
+                    word_color = self.WORD_COLORS[self.color_index % len(self.WORD_COLORS)]
+                    self.color_index += 1
+                    
+                    # Ajouter les cellules
+                    self.found_cells.extend(cells)
+                    for cell in cells:
+                        self.cell_colors[cell] = word_color
+                    break
+    
+    def get_cells_from_word_info(self, word_info: Dict) -> List[Tuple[int, int]]:
+        """Retourne la liste des cellules pour un mot donné depuis word_info."""
+        cells = []
+        row, col = word_info['start']
+        direction = word_info['direction']
+        length = word_info['length']
+        reversed_word = word_info.get('reversed', False)
+        
+        # Déterminer les deltas selon la direction
+        deltas = {
+            'horizontal': (0, 1),
+            'vertical': (1, 0),
+            'diagonal_down': (1, 1),
+            'diagonal_up': (-1, 1)
+        }
+        
+        dr, dc = deltas.get(direction, (0, 1))
+        
+        # Si le mot est inversé, inverser la direction
+        if reversed_word:
+            dr, dc = -dr, -dc
+        
+        # Construire la liste des cellules
+        for i in range(length):
+            cells.append((row + i * dr, col + i * dc))
+        
+        return cells
     
     def get_cells_in_line(self, start: Tuple[int, int], end: Tuple[int, int]) -> List[Tuple[int, int]]:
         """Retourne toutes les cellules dans une ligne entre start et end."""
@@ -625,6 +676,24 @@ class WordSearchGUI:
         
         self.current_selection = []
         self.draw_grid()
+    
+    def update_found_words_display(self):
+        """Met à jour l'affichage des mots trouvés dans la liste."""
+        # Parcourir les mots trouvés et leur appliquer la couleur
+        for i, found_word in enumerate(self.game.found_words):
+            if found_word in self.word_labels:
+                # Trouver la couleur associée à ce mot
+                # On cherche la première cellule de ce mot pour obtenir sa couleur
+                for word_info in self.game.words_to_find:
+                    if word_info['word'] == found_word:
+                        cells = self.get_cells_from_word_info(word_info)
+                        if cells and cells[0] in self.cell_colors:
+                            word_color = self.cell_colors[cells[0]]
+                            self.word_labels[found_word].config(
+                                fg=word_color,
+                                font=("Arial", 14, "bold", "overstrike")
+                            )
+                        break
     
     def on_word_found(self, word: str, cells: List[Tuple[int, int]]):
         """Appelé quand un mot est trouvé."""
