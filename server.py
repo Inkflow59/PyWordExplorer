@@ -10,7 +10,7 @@ import socket
 from datetime import datetime
 from typing import Dict, Set, Optional, Any
 from src.word_generator import get_word_generator
-from src.grid_generator import GridGenerator, GridConfig
+from src.solo.grid_generator import GridGenerator, GridConfig
 
 
 class GameRoom:

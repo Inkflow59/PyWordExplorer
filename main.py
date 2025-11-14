@@ -5,9 +5,9 @@ Point d'entrée principal
 import sys
 import os
 import tkinter as tk
-from src.gui import WordSearchGUI
-from src.game_logic import GameLogic
-from src.save_manager import SaveManager
+from src.solo.gui import WordSearchGUI
+from src.solo.game_logic import GameLogic
+from src.solo.save_manager import SaveManager
 from src.word_generator import get_word_generator
 
 

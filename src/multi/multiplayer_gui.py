@@ -4,7 +4,7 @@ Interface graphique pour le mode multijoueur en ligne
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
-from src.network_client import NetworkClient
+from src.multi.network_client import NetworkClient
 import time
 
 
@@ -136,7 +136,7 @@ class MultiplayerGUI:
         self.room_tree.column('players', width=100)
         
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.room_tree.yview)
-        self.room_tree.configure(yscroll=scrollbar.set)
+        self.room_tree.configure(yscrollcommand=scrollbar.set)
         
         self.room_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -298,7 +298,7 @@ class MultiplayerGUI:
     def on_game_start(self, data):
         """La partie démarre."""
         # Fermer la fenêtre d'attente et ouvrir la fenêtre de jeu
-        from src.multiplayer_game import MultiplayerGameWindow
+        from src.multi.multiplayer_game import MultiplayerGameWindow
         self.game_window = MultiplayerGameWindow(self.window, self.client, data, self.current_room)
     
     def on_word_found(self, data):

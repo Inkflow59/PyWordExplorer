@@ -1,5 +1,6 @@
 """
 Générateur de grilles de mots mêlés avec support de seed.
+Mode Solo.
 """
 import random
 from typing import List, Tuple, Dict, Optional

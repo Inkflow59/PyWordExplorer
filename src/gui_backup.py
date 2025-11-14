@@ -7,8 +7,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from typing import List, Tuple, Optional
 import math
-from src.game_logic import GameLogic
-from src.save_manager import SaveManager
+from src.solo.game_logic import GameLogic
+from src.solo.save_manager import SaveManager
 from src.word_generator import get_word_generator
 from src.language import get_language
 

@@ -1,10 +1,11 @@
 """
 Logique du jeu de mots mêlés avec système de niveaux.
+Mode Solo.
 """
 import time
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
-from src.grid_generator import GridGenerator, GridConfig
+from src.solo.grid_generator import GridGenerator, GridConfig
 
 
 @dataclass

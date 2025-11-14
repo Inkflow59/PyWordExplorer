@@ -1,12 +1,13 @@
 """
 Interface graphique pour PyWordExplorer avec Tkinter.
+Mode Solo.
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from typing import List, Tuple, Optional, Dict
 import math
-from src.game_logic import GameLogic
-from src.save_manager import SaveManager
+from src.solo.game_logic import GameLogic
+from src.solo.save_manager import SaveManager
 from src.word_generator import get_word_generator
 from src.language import get_language
 
@@ -581,14 +582,15 @@ class WordSearchGUI:
                     # Reconstruire la liste des cellules pour ce mot
                     cells = self.get_cells_from_word_info(word_info)
                     
-                    # Assigner une couleur à ce mot
-                    word_color = self.WORD_COLORS[self.color_index % len(self.WORD_COLORS)]
-                    self.color_index += 1
-                    
-                    # Ajouter les cellules
-                    self.found_cells.extend(cells)
-                    for cell in cells:
-                        self.cell_colors[cell] = word_color
+                    if cells:  # Vérifier que des cellules ont bien été trouvées
+                        # Assigner une couleur à ce mot
+                        word_color = self.WORD_COLORS[self.color_index % len(self.WORD_COLORS)]
+                        self.color_index += 1
+                        
+                        # Ajouter les cellules
+                        self.found_cells.extend(cells)
+                        for cell in cells:
+                            self.cell_colors[cell] = word_color
                     break
     
     def get_cells_from_word_info(self, word_info: Dict) -> List[Tuple[int, int]]:
@@ -597,7 +599,6 @@ class WordSearchGUI:
         row, col = word_info['start']
         direction = word_info['direction']
         length = word_info['length']
-        reversed_word = word_info.get('reversed', False)
         
         # Déterminer les deltas selon la direction
         deltas = {
@@ -609,13 +610,18 @@ class WordSearchGUI:
         
         dr, dc = deltas.get(direction, (0, 1))
         
-        # Si le mot est inversé, inverser la direction
-        if reversed_word:
-            dr, dc = -dr, -dc
-        
-        # Construire la liste des cellules
+        # Le point 'start' est déjà le point de départ du mot tel qu'il est placé dans la grille
+        # (qu'il soit inversé ou non), donc on suit simplement la direction
         for i in range(length):
-            cells.append((row + i * dr, col + i * dc))
+            r = row + i * dr
+            c = col + i * dc
+            # Vérifier que les coordonnées sont valides
+            if 0 <= r < len(self.game.grid) and 0 <= c < len(self.game.grid[0]):
+                cells.append((r, c))
+            else:
+                # Si une cellule est hors limites, on arrête et retourne une liste vide
+                # pour indiquer qu'il y a un problème
+                return []
         
         return cells
     
@@ -904,7 +910,7 @@ class WordSearchGUI:
     
     def show_multiplayer(self):
         """Affiche l'interface multijoueur."""
-        from src.multiplayer_gui import MultiplayerGUI
+        from src.multi.multiplayer_gui import MultiplayerGUI
         MultiplayerGUI(self.root)
 
 
