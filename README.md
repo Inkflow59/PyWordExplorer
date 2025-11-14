@@ -149,7 +149,7 @@ For detailed multiplayer instructions, see [MULTIPLAYER.md](MULTIPLAYER.md).
 | Level | Size | Words | Time | Difficulty |
 |-------|------|-------|------|------------|
 | 1 - Beginner | 8×8 | 5 | 3 min | Horizontal, Vertical |
-| 2 - Easy | 10×10 | 7 | 4 min | + Diagonals |
+| 2 - Easy | 10×10 | 7 | 4 min | Horizontal, Vertical |
 | 3 - Medium | 12×12 | 9 | 5 min | + Diagonals |
 | 4 - Hard | 14×14 | 11 | 6 min | + Reversed words |
 | 5 - Expert | 16×16 | 14 | 8 min | + Reversed words |

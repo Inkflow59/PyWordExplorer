@@ -23,8 +23,8 @@ class GameLogic:
     
     LEVELS = [
         Level(1, 8, 5, 180, False, False),          # Niveau 1: 8×8, 5 mots, 3 min, horizontal/vertical
-        Level(2, 10, 7, 240, True, False),          # Niveau 2: 10×10, 7 mots, 4 min, + diagonales
-        Level(3, 12, 9, 300, True, True),           # Niveau 3: 12×12, 9 mots, 5 min, + mots inversés
+        Level(2, 10, 7, 240, True, False),         # Niveau 2: 10×10, 7 mots, 4 min, + diagonales
+        Level(3, 12, 9, 300, True, True),          # Niveau 3: 12×12, 9 mots, 5 min, + mots inversés
         Level(4, 14, 11, 360, True, True),          # Niveau 4: 14×14, 11 mots, 6 min, tout activé
         Level(5, 16, 14, 480, True, True),          # Niveau 5: 16×16, 14 mots, 8 min, tout activé
     ]

@@ -77,10 +77,14 @@ class GameRoom:
         sizes = {1: (8, 5), 2: (10, 7), 3: (12, 9), 4: (14, 11), 5: (16, 14)}
         grid_size, word_count = sizes.get(self.level, (10, 7))
         
+        # Configuration des diagonales et inversions selon le niveau (mêmes paramètres que le solo)
+        allow_diagonal = self.level >= 2  # Diagonales à partir du niveau 2
+        allow_reverse = self.level >= 3   # Inversions à partir du niveau 3
+        
         generator = GridGenerator(self.seed)
         selected_words = random.Random(self.seed).sample(all_words, word_count)
         
-        config = GridConfig(size=grid_size, num_words=word_count, allow_diagonal=True, allow_reverse=True)
+        config = GridConfig(size=grid_size, num_words=word_count, allow_diagonal=allow_diagonal, allow_reverse=allow_reverse)
         self.grid, self.words_to_find = generator.generate_grid(config, selected_words)
         self.game_started = True
         self.start_time = datetime.now()

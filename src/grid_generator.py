@@ -113,8 +113,8 @@ class GridGenerator:
         # Déterminer les directions autorisées (en donnant beaucoup plus de poids aux diagonales si activées)
         available_directions = ['horizontal', 'vertical']
         if config.allow_diagonal:
-            # Ajouter les diagonales plusieurs fois pour augmenter significativement leur fréquence (ratio 3:1)
-            available_directions.extend(['diagonal_down', 'diagonal_up'] * 3)
+            # Ajouter les diagonales plusieurs fois pour augmenter significativement leur fréquence (ratio 4:1)
+            available_directions.extend(['diagonal_down', 'diagonal_up'] * 4)
         
         # Décider si on inverse le mot (60% de chance si allow_reverse est activé)
         word_to_place = word

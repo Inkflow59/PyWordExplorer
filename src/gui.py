@@ -781,6 +781,10 @@ class WordSearchGUI:
         # Toujours proposer le niveau suivant (infini)
         msg += f"\n\n{self.lang.get('next_level')}"
         
+        # Si le joueur a commencé au niveau 1 et termine le niveau 5, passer automatiquement au niveau 6 (infinis)
+        if level == 5:
+            msg += "\n\n♾️ Vous débloquez maintenant les niveaux infinis!"
+        
         result = messagebox.askquestion(
             self.lang.get('level_complete'),
             msg + "\n\n" + self.lang.get('continue_question')
