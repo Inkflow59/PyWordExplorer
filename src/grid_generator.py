@@ -110,16 +110,16 @@ class GridGenerator:
         if max_attempts is None:
             max_attempts = max(200, config.size * 20)
         
-        # Déterminer les directions autorisées (en donnant plus de poids aux diagonales si activées)
+        # Déterminer les directions autorisées (en donnant beaucoup plus de poids aux diagonales si activées)
         available_directions = ['horizontal', 'vertical']
         if config.allow_diagonal:
-            # Ajouter les diagonales plusieurs fois pour augmenter leur fréquence
-            available_directions.extend(['diagonal_down', 'diagonal_up', 'diagonal_down', 'diagonal_up'])
+            # Ajouter les diagonales plusieurs fois pour augmenter significativement leur fréquence (ratio 3:1)
+            available_directions.extend(['diagonal_down', 'diagonal_up'] * 3)
         
-        # Décider si on inverse le mot (50% de chance si allow_reverse est activé)
+        # Décider si on inverse le mot (60% de chance si allow_reverse est activé)
         word_to_place = word
         is_reversed = False
-        if config.allow_reverse and self.rng.random() < 0.5:
+        if config.allow_reverse and self.rng.random() < 0.6:
             word_to_place = word[::-1]  # Inverser les lettres
             is_reversed = True
         
