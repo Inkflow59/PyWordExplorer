@@ -349,16 +349,35 @@ class MultiplayerServer:
         )
     
     async def start(self):
-        """Démarre le serveur."""
+        """Starts the server."""
         async with websockets.serve(self.handle_client, self.host, self.port):
-            print(f"🎮 Serveur multijoueur démarré sur {self.host}:{self.port}")
-            print(f"   Mode Duel: Compétition - le joueur avec le plus de mots trouvés gagne")
-            print(f"   Mode Coop: Coopération - trouvez tous les mots ensemble")
+            print("=" * 70)
+            print("🎮 PyWordExplorer - Multiplayer Server")
+            print("=" * 70)
+            print(f"📡 Server running on {self.host}:{self.port}")
+            print(f"🌐 Server URL: ws://{self.host}:{self.port}")
+            print()
+            print("📋 Game Modes:")
+            print("   • Duel Mode: Compete to find the most words - highest score wins!")
+            print("   • Coop Mode: Work together to find all words - team victory!")
+            print()
+            print("⚙️  Configuration:")
+            print(f"   • Max players per room: 2")
+            print(f"   • Available levels: 1-5")
+            print(f"   • Level 1: 8x8 grid, 5 words, 3 minutes")
+            print(f"   • Level 2: 10x10 grid, 7 words, 4 minutes")
+            print(f"   • Level 3: 12x12 grid, 9 words, 5 minutes")
+            print(f"   • Level 4: 14x14 grid, 11 words, 6 minutes")
+            print(f"   • Level 5: 16x16 grid, 14 words, 8 minutes")
+            print()
+            print("✅ Server ready! Waiting for players...")
+            print("   Press Ctrl+C to stop the server")
+            print("=" * 70)
             await asyncio.Future()  # Run forever
 
 
 async def main():
-    """Lance le serveur."""
+    """Launches the server."""
     server = MultiplayerServer(host='0.0.0.0', port=8765)
     await server.start()
 
@@ -367,4 +386,8 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n\n👋 Serveur arrêté!")
+        print("\n")
+        print("=" * 70)
+        print("👋 Server stopped gracefully!")
+        print("   Thank you for playing PyWordExplorer!")
+        print("=" * 70)
