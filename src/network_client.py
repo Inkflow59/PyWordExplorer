@@ -28,13 +28,31 @@ class NetworkClient:
     async def _connect(self):
         """Établit la connexion avec le serveur."""
         try:
-            self.websocket = await websockets.connect(self.server_url)
+            print(f"🔄 Tentative de connexion à {self.server_url}...")
+            self.websocket = await asyncio.wait_for(
+                websockets.connect(self.server_url),
+                timeout=10.0
+            )
             self.connected = True
             print(f"✓ Connecté au serveur {self.server_url}")
             return True
-        except Exception as e:
-            print(f"✗ Erreur de connexion: {e}")
+        except asyncio.TimeoutError:
+            print(f"✗ Timeout: impossible de joindre le serveur {self.server_url}")
             self.connected = False
+            if 'connection_failed' in self.callbacks:
+                self.callbacks['connection_failed']({'error': 'timeout'})
+            return False
+        except ConnectionRefusedError:
+            print(f"✗ Connexion refusée: le serveur n'est pas accessible sur {self.server_url}")
+            self.connected = False
+            if 'connection_failed' in self.callbacks:
+                self.callbacks['connection_failed']({'error': 'refused'})
+            return False
+        except Exception as e:
+            print(f"✗ Erreur de connexion: {type(e).__name__}: {e}")
+            self.connected = False
+            if 'connection_failed' in self.callbacks:
+                self.callbacks['connection_failed']({'error': str(e)})
             return False
     
     async def _receive_messages(self):
@@ -93,9 +111,13 @@ class NetworkClient:
         if not self.thread or not self.thread.is_alive():
             self.thread = threading.Thread(target=self._run_event_loop, daemon=True)
             self.thread.start()
-            # Attendre un peu pour que la connexion s'établisse
+            # Attendre que la connexion s'établisse
             import time
-            time.sleep(0.5)
+            max_wait = 3.0  # Attendre jusqu'à 3 secondes
+            elapsed = 0.0
+            while elapsed < max_wait and not self.connected:
+                time.sleep(0.1)
+                elapsed += 0.1
     
     def send(self, data: dict):
         """Envoie un message de manière thread-safe."""

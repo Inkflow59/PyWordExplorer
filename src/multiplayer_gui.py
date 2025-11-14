@@ -42,6 +42,7 @@ class MultiplayerGUI:
         self.client.on('game_over', self.on_game_over)
         self.client.on('error', self.on_error)
         self.client.on('disconnected', self.on_disconnected)
+        self.client.on('connection_failed', self.on_connection_failed)
     
     def show_connection_screen(self):
         """Affiche l'écran de connexion."""
@@ -323,3 +324,22 @@ class MultiplayerGUI:
         """Déconnecté du serveur."""
         messagebox.showwarning("Déconnexion", "Connexion au serveur perdue")
         self.show_connection_screen()
+    
+    def on_connection_failed(self, data):
+        """Échec de la connexion au serveur."""
+        error = data.get('error', 'unknown')
+        if error == 'timeout':
+            messagebox.showerror("Erreur de connexion", 
+                               "Impossible de joindre le serveur.\n\n"
+                               "Vérifiez que :\n"
+                               "• Le serveur est bien lancé (python server.py)\n"
+                               "• L'adresse est correcte (localhost:8765)\n"
+                               "• Aucun pare-feu ne bloque la connexion")
+        elif error == 'refused':
+            messagebox.showerror("Connexion refusée", 
+                               "Le serveur a refusé la connexion.\n\n"
+                               "Assurez-vous que le serveur est en cours d'exécution :\n"
+                               "python server.py")
+        else:
+            messagebox.showerror("Erreur de connexion", 
+                               f"Impossible de se connecter au serveur.\n\nErreur : {error}")
