@@ -1,5 +1,7 @@
+# type: ignore
 """
 Interface graphique pour PyWordExplorer avec Tkinter.
+FICHIER DE BACKUP - Peut contenir des avertissements de type
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
@@ -219,7 +221,7 @@ class WordSearchGUI:
             command=self.show_main_menu
         ).pack(pady=30)
     
-    def start_level(self, level: int, seed: int = None):
+    def start_level(self, level: int, seed: Optional[int] = None):
         """Démarre un niveau."""
         try:
             info = self.game.start_level(level, seed)
@@ -645,6 +647,78 @@ class WordSearchGUI:
             self.start_level(self.game.current_level.number, self.game.seed)
         else:
             self.show_main_menu()
+    
+    def show_settings(self):
+        """Affiche le dialogue des paramètres."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Paramètres")
+        dialog.geometry("400x300")
+        dialog.configure(bg=self.COLOR_BG)
+        
+        tk.Label(
+            dialog,
+            text="Paramètres",
+            font=("Arial", 18, "bold"),
+            bg=self.COLOR_BG,
+            fg="#ECF0F1"
+        ).pack(pady=20)
+        
+        # Sélecteur de langue
+        lang_frame = tk.Frame(dialog, bg=self.COLOR_BG)
+        lang_frame.pack(pady=20)
+        
+        tk.Label(
+            lang_frame,
+            text=self.lang.get('language') + ":",
+            font=("Arial", 14),
+            bg=self.COLOR_BG,
+            fg="#ECF0F1"
+        ).pack(side=tk.LEFT, padx=10)
+        
+        lang_var = tk.StringVar(value=self.lang.current_language)
+        
+        for lang_code, lang_name in self.lang.get_available_languages():
+            rb = tk.Radiobutton(
+                lang_frame,
+                text=lang_name,
+                variable=lang_var,
+                value=lang_code,
+                font=("Arial", 12),
+                bg=self.COLOR_BG,
+                fg="#ECF0F1",
+                selectcolor=self.COLOR_WORD_LIST,
+                activebackground=self.COLOR_BG,
+                activeforeground="#ECF0F1"
+            )
+            rb.pack(anchor=tk.W, padx=20)
+        
+        def apply_settings():
+            new_lang = lang_var.get()
+            if new_lang != self.lang.current_language:
+                self.lang.set_language(new_lang)
+                self.word_gen.set_language(new_lang)
+                messagebox.showinfo(
+                    "Succès",
+                    self.lang.get('language_changed')
+                )
+                dialog.destroy()
+                # Rafraîchir l'interface
+                self.update_title()
+                self.create_menu()
+                self.show_main_menu()
+            else:
+                dialog.destroy()
+        
+        tk.Button(
+            dialog,
+            text="OK",
+            font=("Arial", 12),
+            width=15,
+            bg="#3498DB",
+            fg="white",
+            relief="flat",
+            command=apply_settings
+        ).pack(pady=20)
     
     def show_help(self):
         """Affiche l'aide."""

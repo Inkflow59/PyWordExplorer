@@ -2,7 +2,7 @@
 Générateur de grilles de mots mêlés avec support de seed.
 """
 import random
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from dataclasses import dataclass
 
 
@@ -29,7 +29,7 @@ class GridGenerator:
         'diagonal_up_reverse': (1, -1)
     }
     
-    def __init__(self, seed: int = None):
+    def __init__(self, seed: Optional[int] = None):
         """
         Initialise le générateur.
         
@@ -93,7 +93,7 @@ class GridGenerator:
         # Cas extrême : générer une grille minimale avec des mots courts garantis
         return self._generate_fallback_grid(config, suitable_words)
     
-    def _try_place_word(self, grid: List[List[str]], word: str, config: GridConfig, max_attempts: int = None) -> Dict:
+    def _try_place_word(self, grid: List[List[str]], word: str, config: GridConfig, max_attempts: Optional[int] = None) -> Optional[Dict]:
         """
         Tente de placer un mot dans la grille.
         

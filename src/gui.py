@@ -3,7 +3,7 @@ Interface graphique pour PyWordExplorer avec Tkinter.
 """
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 import math
 from src.game_logic import GameLogic
 from src.save_manager import SaveManager
@@ -193,7 +193,7 @@ class WordSearchGUI:
         )
         title.pack(pady=30)
         
-        # Descriptions des niveaux
+        # Descriptions des niveaux de base
         levels_info = [
             (f"1. {self.lang.get('beginner')}", f"8×8, 5 {self.lang.get('words')}, 3 {self.lang.get('minutes')}"),
             (f"2. {self.lang.get('easy')}", f"10×10, 7 {self.lang.get('words')}, 4 {self.lang.get('minutes')}"),
@@ -229,6 +229,31 @@ class WordSearchGUI:
             )
             desc.pack(side=tk.LEFT, padx=10)
         
+        # Bouton pour niveaux personnalisés/infinis
+        custom_frame = tk.Frame(frame, bg=self.COLOR_BG)
+        custom_frame.pack(pady=20)
+        
+        tk.Button(
+            custom_frame,
+            text="♾️ Niveau personnalisé",
+            font=("Arial", 14, "bold"),
+            width=25,
+            height=2,
+            bg="#9B59B6",
+            fg="white",
+            relief="flat",
+            cursor="hand2",
+            command=self.custom_level_dialog
+        ).pack()
+        
+        tk.Label(
+            custom_frame,
+            text="Niveaux infinis disponibles!",
+            font=("Arial", 10),
+            bg=self.COLOR_BG,
+            fg="#BDC3C7"
+        ).pack(pady=5)
+        
         tk.Button(
             frame,
             text=self.lang.get('back'),
@@ -240,7 +265,18 @@ class WordSearchGUI:
             command=self.show_main_menu
         ).pack(pady=30)
     
-    def start_level(self, level: int, seed: int = None):
+    def custom_level_dialog(self):
+        """Dialogue pour choisir un niveau personnalisé."""
+        level = simpledialog.askinteger(
+            "Niveau personnalisé",
+            "Entrez le numéro du niveau (1+):\n\nNiveaux 1-5: prédéfinis\nNiveaux 6+: difficulté croissante infinie!",
+            minvalue=1,
+            maxvalue=999
+        )
+        if level:
+            self.start_level(level)
+    
+    def start_level(self, level: int, seed: Optional[int] = None):
         """Démarre un niveau."""
         try:
             # Mettre à jour les mots selon la langue
@@ -325,7 +361,12 @@ class WordSearchGUI:
         """Dialogue pour rejouer avec un seed."""
         seed = simpledialog.askinteger(self.lang.get('replay_seed'), self.lang.get('seed_dialog'))
         if seed is not None:
-            level = simpledialog.askinteger(self.lang.get('level'), self.lang.get('level_dialog'), minvalue=1, maxvalue=5)
+            level = simpledialog.askinteger(
+                self.lang.get('level'),
+                self.lang.get('level_dialog') + "\n(Niveaux infinis disponibles!)",
+                minvalue=1,
+                maxvalue=999
+            )
             if level:
                 self.start_level(level, seed)
     
@@ -654,15 +695,15 @@ class WordSearchGUI:
         msg += self.lang.get('time_used', int(self.game.elapsed_time)) + "\n"
         msg += f"{self.lang.get('seed')}: {self.game.seed}"
         
-        if level < len(GameLogic.LEVELS):
-            msg += f"\n\n{self.lang.get('next_level')}"
+        # Toujours proposer le niveau suivant (infini)
+        msg += f"\n\n{self.lang.get('next_level')}"
         
         result = messagebox.askquestion(
             self.lang.get('level_complete'),
             msg + "\n\n" + self.lang.get('continue_question')
         )
         
-        if result == 'yes' and level < len(GameLogic.LEVELS):
+        if result == 'yes':
             self.start_level(level + 1)
         else:
             self.show_main_menu()

@@ -3,8 +3,12 @@ PyWordExplorer - Jeu de mots mêlés
 Point d'entrée principal
 """
 import sys
+import os
 import tkinter as tk
 from src.gui import WordSearchGUI
+from src.game_logic import GameLogic
+from src.save_manager import SaveManager
+from src.word_generator import get_word_generator
 
 
 def main():
@@ -33,7 +37,8 @@ class ConsoleUI_OLD:
     """Interface utilisateur en mode console."""
     
     def __init__(self):
-        self.game = GameLogic(get_words())
+        word_gen = get_word_generator()
+        self.game = GameLogic(word_gen.get_words())
         self.save_manager = SaveManager()
         self.running = True
     
@@ -290,6 +295,9 @@ class ConsoleUI_OLD:
     
     def level_complete(self):
         """Affiche l'écran de niveau terminé."""
+        if not self.game.current_level:
+            return
+            
         self.clear_screen()
         print("\n" + "="*60)
         print("  🎉 NIVEAU TERMINÉ! 🎉")
