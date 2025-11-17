@@ -197,6 +197,11 @@ class MultiplayerServer:
         """Gère la connexion d'un client."""
         self.clients.add(websocket)
         current_room = None
+        client_name = "Unknown"
+        
+        # Log de connexion
+        client_address = websocket.remote_address
+        print(f"🔌 [{datetime.now().strftime('%H:%M:%S')}] New client connected from {client_address[0]}:{client_address[1]}")
         
         try:
             async for message in websocket:
@@ -214,7 +219,14 @@ class MultiplayerServer:
                         data.get('seed')
                     )
                     current_room = room.room_id
+                    client_name = data['player_name']
                     room.add_player(websocket, data['player_name'])
+                    
+                    # Log de création de salon
+                    mode_text = "🎯 Duel" if room.mode == "duel" else "🤝 Coop"
+                    print(f"🏠 [{datetime.now().strftime('%H:%M:%S')}] Room created: {room.room_id}")
+                    print(f"   └─ Host: {data['player_name']} | Mode: {mode_text} | Level: {room.level} | Seed: {room.seed}")
+                    
                     await self.broadcast_room_update(room)
                     await websocket.send(json.dumps({
                         'type': 'room_created',
@@ -226,6 +238,12 @@ class MultiplayerServer:
                     if room and not room.is_full() and not room.game_started:
                         if room.add_player(websocket, data['player_name']):
                             current_room = room.room_id
+                            client_name = data['player_name']
+                            
+                            # Log de rejoindre un salon
+                            print(f"👤 [{datetime.now().strftime('%H:%M:%S')}] {data['player_name']} joined room {room.room_id}")
+                            print(f"   └─ Players: {len(room.players)}/{room.max_players}")
+                            
                             await self.broadcast_to_room(room, {
                                 'type': 'player_joined',
                                 'player_name': data['player_name'],
@@ -246,12 +264,22 @@ class MultiplayerServer:
                         room = self.rooms[current_room]
                         if websocket in room.players:
                             room.players[websocket]['ready'] = True
+                            player_name = room.players[websocket]['name']
+                            
+                            # Log de joueur prêt
+                            print(f"✅ [{datetime.now().strftime('%H:%M:%S')}] {player_name} is ready in room {room.room_id}")
+                            
                             await self.broadcast_to_room(room, {
                                 'type': 'player_ready',
-                                'player_name': room.players[websocket]['name']
+                                'player_name': player_name
                             })
                             
                             if room.all_players_ready():
+                                # Log de début de partie
+                                mode_text = "Duel" if room.mode == "duel" else "Coop"
+                                print(f"🎮 [{datetime.now().strftime('%H:%M:%S')}] Game starting in room {room.room_id}")
+                                print(f"   └─ Mode: {mode_text} | Level: {room.level} | Players: {', '.join([p['name'] for p in room.players.values()])}")
+                                
                                 room.start_game()
                                 await self.broadcast_to_room(room, {
                                     'type': 'game_start',
@@ -268,6 +296,10 @@ class MultiplayerServer:
                         result = room.check_word(player_name, data['word'])
                         
                         if result['valid']:
+                            # Log de mot trouvé
+                            print(f"💡 [{datetime.now().strftime('%H:%M:%S')}] Word found in room {room.room_id}: '{result['word']}' by {result['finder']}")
+                            print(f"   └─ Progress: {result['found_count']}/{result['total_words']} words")
+                            
                             await self.broadcast_to_room(room, {
                                 'type': 'word_found',
                                 'word': result['word'],
@@ -286,6 +318,15 @@ class MultiplayerServer:
                         # Vérifier fin de partie
                         if room.is_game_over():
                             winner = room.get_winner()
+                            
+                            # Log de fin de partie
+                            if room.mode == "coop":
+                                print(f"🏆 [{datetime.now().strftime('%H:%M:%S')}] Game ended in room {room.room_id}")
+                                print(f"   └─ Team found {len(room.found_words)}/{len(room.words_to_find)} words")
+                            else:
+                                print(f"🏆 [{datetime.now().strftime('%H:%M:%S')}] Game ended in room {room.room_id}")
+                                print(f"   └─ Winner: {winner} | Scores: {room.player_scores}")
+                            
                             await self.broadcast_to_room(room, {
                                 'type': 'game_over',
                                 'winner': winner,
@@ -298,6 +339,10 @@ class MultiplayerServer:
                         room = self.rooms[current_room]
                         player_name = room.players[websocket]['name']
                         room.remove_player(websocket)
+                        
+                        # Log de départ
+                        print(f"👋 [{datetime.now().strftime('%H:%M:%S')}] {player_name} left room {room.room_id}")
+                        
                         current_room = None
                         
                         await self.broadcast_to_room(room, {
@@ -307,22 +352,33 @@ class MultiplayerServer:
                         
                         # Supprimer la room si vide
                         if len(room.players) == 0:
+                            print(f"🗑️  [{datetime.now().strftime('%H:%M:%S')}] Room {room.room_id} deleted (empty)")
                             del self.rooms[room.room_id]
         
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
+            # Log de déconnexion
+            if client_name != "Unknown":
+                print(f"🔴 [{datetime.now().strftime('%H:%M:%S')}] {client_name} disconnected")
+            else:
+                print(f"🔴 [{datetime.now().strftime('%H:%M:%S')}] Client disconnected from {client_address[0]}:{client_address[1]}")
+            
             self.clients.remove(websocket)
             if current_room and current_room in self.rooms:
                 room = self.rooms[current_room]
                 if websocket in room.players:
                     player_name = room.players[websocket]['name']
                     room.remove_player(websocket)
+                    
+                    print(f"   └─ Left room {room.room_id}")
+                    
                     await self.broadcast_to_room(room, {
                         'type': 'player_left',
                         'player_name': player_name
                     })
                     if len(room.players) == 0:
+                        print(f"🗑️  [{datetime.now().strftime('%H:%M:%S')}] Room {room.room_id} deleted (empty)")
                         del self.rooms[room.room_id]
     
     async def create_room(self, host_name: str, mode: str, level: int, seed: Optional[int] = None) -> GameRoom:
